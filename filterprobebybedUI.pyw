@@ -93,7 +93,7 @@ def getcoordinates(sline):
         for pcord in pcords:
             coord=pcord.replace('-',':').split(':')
             pchr=coord[0]
-            pstart=int(coord[1])
+            pstart=int(coord[1])-1 #fix for SD6 2 SD8
             pend=int(coord[2])
             coords.append([pchr,pstart,pend])
     return (coords)
