@@ -70,10 +70,10 @@ def apply_probefiltering():
     if not os.path.isfile(bedfile):
         tk.messagebox.showinfo("Error",f"Error accessing bedfile {bedfile}\nPlease reimport")
         return 0
-    minumum_overlap=check_get_minOverlap()
-    if not minumum_overlap:return 0
+    minimum_overlap=check_get_minOverlap()
+    if not minimum_overlap:return 0
     #All parameters seem to be set. Apply filter
-    filterprobesbybed(bedfile,probefile)
+    filterprobesbybed(bedfile,probefile,minimum_overlap)
 
 def bed2dict(bedfile):
     """
@@ -120,7 +120,7 @@ def getcoordinates(sline):
             coords.append([pchr,pstart,pend])
     return (coords)
 
-def filterprobesbybed(bed,probes):
+def filterprobesbybed(bed,probes,minimum_overlap=1):
     """
         This script filters the probes out that overlaps with a region from probes.txt files for Sureselect.
     """
@@ -131,10 +131,12 @@ def filterprobesbybed(bed,probes):
         beds=bed
     #read probes
     intarget=0
+    below_overlapthreshold=0
     outtarget=0
     fi=open(probes,'r')
     fo=open(probes[:-4]+'_filtered_outBed.txt','w')
     fo2=open(probes[:-4]+'_filtered_inBed.txt','w')
+    fo3=open(probes[:-4]+'_filtered_belowthresholdBed.txt','w')
     for line in fi:
         if line.strip()=="":continue
         if line.startswith('TargetID\tProbeID'):
@@ -143,27 +145,35 @@ def filterprobesbybed(bed,probes):
             continue
         sline=line.strip().split('\t')
         istarget=False
+        total_overlap=0
         coords=getcoordinates(sline)
         for coord in coords:
             pchr,pstart,pend=coord
             if pchr in beds:
                 for bed in beds[pchr]:
-                    if bed [0] > pend:break
+                    if bed[0] > pend:break
+                    if pstart >bed[1]:continue
                     dist=max(bed[0],pstart)-min(bed[1],pend)
-                    if dist<=0:
-                        istarget=True
-                        break
+                    if dist < 0:
+                        overlap = abs(dist)
+                        total_overlap += overlap
+                        istarget = True
         if istarget:
-            fo2.write(line)
-            intarget+=1
+            if total_overlap >= minimum_overlap:
+                fo2.write(line)
+                intarget+=1
+            else:
+                below_overlapthreshold+=1
+                fo3.write(line)
         else:
             fo.write(line)
             outtarget+=1
     fo.close()
     fo2.close()
+    fo3.close()
     fi.close()
-    print("File: {}\ton-target: {}\toff-target: {}\ttotal: {}".format(probes,intarget,outtarget,intarget+outtarget))
-    tk.messagebox.showinfo("Completed!","Probe File: {}\nBedFile:{}\non-target: {}\noff-target: {}\ntotal: {}".format(probes,inputbedfile,intarget,outtarget,intarget+outtarget))
+    print("File: {}\ton-target: {}\tbelow min. overlap threshold({}): {}\toff-target: {}\ttotal: {}".format(probes,intarget,minimum_overlap,below_overlapthreshold,outtarget,intarget+below_overlapthreshold+outtarget))
+    tk.messagebox.showinfo("Completed!","Probe File: {}\nBedFile:{}\non-target: {}\nbelow-threshold:{}\noff-target: {}\ntotal: {}".format(probes,inputbedfile,intarget,below_overlapthreshold,outtarget,intarget+outtarget))
 #UI 
 
 root.title("Filter probes by bed")
