@@ -148,11 +148,11 @@ root=tk.Tk()
 root.title("Filter probes by bed")
 
 topframe=tk.Frame(root,height=30, pady=5,padx=5)
-topframe.pack(expand="YES",fill='both')
+topframe.pack(expand='YES',fill='both')
 
 
 probeframe=tk.Frame(root,height=30,pady=5,padx=5)
-probeframe.pack(expand="YES",fill='both')
+probeframe.pack(expand='YES',fill='both')
 
 iprobe_button=tk.Button(probeframe,text="Import probes file",command=get_probefile)
 iprobe_button.pack(side="left")
@@ -163,7 +163,7 @@ iprobe_text.insert("end","None")
 iprobe_text.config(state='disabled')
 
 bedframe=tk.Frame(root,height=30,pady=5,padx=5)
-bedframe.pack()
+bedframe.pack(expand='YES',fill='both')
 
 ibed_button=tk.Button(bedframe,text="Import bed file",command=get_bedfile)
 ibed_button.pack(side='left')
@@ -171,6 +171,15 @@ ibed_text=tk.Text(bedframe,height=1,width=100)
 ibed_text.pack(side='left')
 ibed_text.insert("end","None")
 ibed_text.config(state='disabled')
+
+overlapframe=tk.Frame(root,height=30, pady=5, padx=5)
+overlapframe.pack(expand='YES',fill='both')
+overlapLabel=tk.Label(overlapframe,text="Min. Overlap")
+overlapLabel.pack(side='left')
+overlap_text=tk.Text(overlapframe,height=1,width=5)
+overlap_text.pack(side='left')
+overlap_text.insert("end","20")
+
 
 apply_filterbutton=tk.Button(root,text="Apply Filter",command=apply_probefiltering)
 apply_filterbutton.pack()
