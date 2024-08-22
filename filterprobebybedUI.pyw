@@ -6,8 +6,12 @@ from tkinter import filedialog
 from tkinter import StringVar
 from tkinter import messagebox
 
+root=tk.Tk()
 probefile=None
 bedfile=None
+minOverlap=tk.StringVar()
+minOverlap.set("20")
+
 
 
 
@@ -22,8 +26,24 @@ def get_probefile():
         iprobe_text.insert("end",probefile)
         iprobe_text.config(state="disabled")
 
-    
-    
+def check_get_minOverlap():
+    global minOverlap
+    overlapValue=minOverlap.get()
+    try:
+        int_value=int(overlapValue)
+
+        if int_value <1:
+            tk.messagebox.showinfo('Error','Min overlap should be a value in between 1-120')
+            return False
+
+        if int_value > 120:
+            tk.messagebox.showinfo('Error','Min overlap should be a value in between 1-120')
+            return False
+
+        return int_value
+    except:
+        tk.messagebox.showinfo('Error','Please enter an integer in between 1-120 for Min. Overlap')
+        return False
 
 def get_bedfile():
     global bedfile
@@ -50,6 +70,8 @@ def apply_probefiltering():
     if not os.path.isfile(bedfile):
         tk.messagebox.showinfo("Error",f"Error accessing bedfile {bedfile}\nPlease reimport")
         return 0
+    minumum_overlap=check_get_minOverlap()
+    if not minumum_overlap:return 0
     #All parameters seem to be set. Apply filter
     filterprobesbybed(bedfile,probefile)
 
@@ -144,7 +166,6 @@ def filterprobesbybed(bed,probes):
     tk.messagebox.showinfo("Completed!","Probe File: {}\nBedFile:{}\non-target: {}\noff-target: {}\ntotal: {}".format(probes,inputbedfile,intarget,outtarget,intarget+outtarget))
 #UI 
 
-root=tk.Tk()
 root.title("Filter probes by bed")
 
 topframe=tk.Frame(root,height=30, pady=5,padx=5)
@@ -176,9 +197,9 @@ overlapframe=tk.Frame(root,height=30, pady=5, padx=5)
 overlapframe.pack(expand='YES',fill='both')
 overlapLabel=tk.Label(overlapframe,text="Min. Overlap")
 overlapLabel.pack(side='left')
-overlap_text=tk.Text(overlapframe,height=1,width=5)
-overlap_text.pack(side='left')
-overlap_text.insert("end","20")
+overlap_entry=tk.Entry( overlapframe, textvariable=minOverlap )
+overlap_entry.pack(side='left')
+
 
 
 apply_filterbutton=tk.Button(root,text="Apply Filter",command=apply_probefiltering)
